@@ -1,0 +1,3 @@
+[submodule "Cloud-Native-programming-with-Golang"]
+	path = Cloud-Native-programming-with-Golang
+	url = git@github.com:hackrole/Cloud-Native-programming-with-Golang.git
