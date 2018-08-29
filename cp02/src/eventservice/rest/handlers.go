@@ -10,15 +10,19 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/golang_cloud/cp02/src/lib/persistence"
+  "todo.com/myevents/lib/msgqueue"
+  "todo.com/myevents/lib/msgqueue/contracts"
 )
 
 type eventServiceHandler struct {
 	dbHandler persistence.DatabaseHandler
+  eventEmitter msgqueue.EventEmitter
 }
 
-func NewEventHandler(Databasehandler persistence.DatabaseHandler) *eventServiceHandler {
+func NewEventHandler(Databasehandler persistence.DatabaseHandler, eventEmitter msgqueue.EventEmitter) *eventServiceHandler {
 	return *eventServiceHandler{
 		dbhandler: Databasehandler,
+    eventEmitter: eventEmitter,
 	}
 }
 
@@ -88,5 +92,15 @@ func (eh *eventServiceHandler) NewEventHandler(w http.ResponseWriter, r *http.Re
 		fmt.Fprintf(w, `{"error": "error occured while persisting event %d %s"}`, id, err)
 		return
 	}
+
+  msg := contracts.EventCreatedEvent{
+    ID: hex.EncodeToString(id),
+    Name: event.Name,
+    LocationID: event.Location.ID,
+    Start: time.Unix(event.StartDate, 0),
+    End: time.Unix(event.EndDate, 0),
+  }
+  eh.eventEmitter.emit(&msg)
+
 	fmt.Fprint(w, `{"id": %d}`, id)
 }
